@@ -30,6 +30,15 @@ import pytest  # noqa: E402  (after sys.path bootstrap)
 
 
 @pytest.fixture(autouse=True)
+def isolated_bootstrap_environment(monkeypatch, tmp_path):
+    """Never read real bootstrap credentials or an operator's token sink."""
+    for name in ("INFISICAL_TOKEN", "INFISICAL_CLIENT_ID", "INFISICAL_CLIENT_SECRET"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+
+
+@pytest.fixture(autouse=True)
 def clean_project_cache():
     """Reset the process-lifetime project cache around every test."""
     from infisical_plugin.client import _reset_project_cache_for_tests

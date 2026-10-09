@@ -5,7 +5,7 @@
 set -euo pipefail
 
 HERMES_REPO="https://github.com/nousresearch/hermes-agent.git"
-HERMES_PIN="4281151ae859241351ba14d8c7682dc67ff4c126"
+HERMES_PIN="6ab390a4764050bfed7f6ecb9d88c8e1d6377547"
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 dest="$root_dir/.deps/hermes-agent"

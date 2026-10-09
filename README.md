@@ -16,7 +16,11 @@ the Hermes secret-source contract.
 
 ## Requirements
 
-- Hermes Agent with secret-source plugin support (API version 1).
+- Hermes Agent with secret-source plugin support (API version 1) and
+  `agent.secret_sources.base.get_source_environment` (introduced in Hermes
+  commit `6ab390a4764050bfed7f6ecb9d88c8e1d6377547`, also pinned for tests).
+  API version 1 alone is not sufficient on older builds; upgrade Hermes
+  rather than falling back to process-wide credential reads.
 - An Infisical server exposing the v4 secrets API (Infisical Cloud, or a
   recent self-hosted release).
 - No extra Python packages: the plugin uses `requests`, which Hermes ships.
@@ -104,6 +108,27 @@ inf://<project>/<environment>[/<folder>...]/<key>[?options]
 
 `INFISICAL_TOKEN`, `INFISICAL_CLIENT_ID` and `INFISICAL_CLIENT_SECRET` are
 protected: no secret source (including this one) may overwrite them.
+
+#### Scoped bootstrap credentials
+
+Both `infisical` and `infisical_bulk` read these bootstrap variables through
+Hermes' `get_source_environment()`. During a scoped fetch, including the
+registry's timeout worker, that view is the environment supplied for the
+profile being hydrated, not the launch process's `os.environ`.
+
+An empty scoped view, a missing variable, or a whitespace-only value does
+**not** fall back to launch-process credentials. For `token`, this reports
+`NOT_CONFIGURED`. For `universal-auth`, a missing or empty credential still
+uses its configured `client_id_path` or `client_secret_path`; without a
+usable file it reports `NOT_CONFIGURED` before making a login request.
+Nonempty environment values take precedence over credential files, and
+surrounding whitespace is stripped as before.
+
+When no scoped view is installed, Hermes' helper returns the process
+environment, preserving ordinary single-profile startup behavior. Supply
+bootstrap credentials in the target profile's environment or use explicit
+credential files. The `agent` token sink and path expansion are unchanged;
+this fix scopes environment-based credentials only.
 
 ### Limitations
 

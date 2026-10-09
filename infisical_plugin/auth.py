@@ -12,11 +12,12 @@ paths and env vars, never credential values.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Optional
 
 import requests
+
+from agent.secret_sources.base import get_source_environment
 
 from .errors import ErrorKind, InfisicalError
 
@@ -71,7 +72,7 @@ def _agent_token(auth_cfg: dict) -> str:
 
 def _read_credential(auth_cfg: dict, env_name: str, path_key: str) -> str:
     """A credential comes from an env var, or a file named in the config."""
-    value = os.environ.get(env_name, "").strip()
+    value = get_source_environment().get(env_name, "").strip()
     if value:
         return value
     raw_path = auth_cfg.get(path_key)
@@ -142,7 +143,7 @@ def _universal_auth_token(
 
 
 def _static_token() -> str:
-    token = os.environ.get(STATIC_TOKEN_ENV, "").strip()
+    token = get_source_environment().get(STATIC_TOKEN_ENV, "").strip()
     if not token:
         raise InfisicalError(
             ErrorKind.NOT_CONFIGURED,
